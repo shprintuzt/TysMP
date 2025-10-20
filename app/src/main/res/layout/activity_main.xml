@@ -1,39 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-android:orientation="vertical"
-android:gravity="center"
-android:layout_width="match_parent"
-android:layout_height="match_parent"
-android:padding="16dp"
-android:background="#101010">
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-<TextView
-    android:id="@+id/songTitle"
-    android:text="🎵 サンプル曲"
-    android:textColor="#FFFFFF"
-    android:textSize="24sp"
-    android:layout_marginBottom="24dp"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"/>
-
-<Button
-    android:id="@+id/playButton"
-    android:text="▶ 再生"
-    android:layout_width="200dp"
-    android:layout_height="wrap_content"/>
-
-<Button
-    android:id="@+id/pauseButton"
-    android:text="⏸ 一時停止"
-    android:layout_marginTop="12dp"
-    android:layout_width="200dp"
-    android:layout_height="wrap_content"/>
-
-<Button
-    android:id="@+id/stopButton"
-    android:text="⏹ 停止"
-    android:layout_marginTop="12dp"
-    android:layout_width="200dp"
-    android:layout_height="wrap_content"/>
-
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/musicRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
 </LinearLayout>
