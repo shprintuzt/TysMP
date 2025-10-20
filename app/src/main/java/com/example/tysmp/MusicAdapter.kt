@@ -1,19 +1,17 @@
 package com.example.tysmp
 
-import android.media.MediaPlayer
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import java.io.IOException
 
 data class Music(val name: String, val path: String)
 
-class MusicAdapter(private val musicList: List<Music>) :
-    RecyclerView.Adapter<MusicAdapter.MusicViewHolder>() {
-
-    private var mediaPlayer: MediaPlayer? = null
+class MusicAdapter(
+    private val musicList: List<Music>,
+    private val onItemClick: (String) -> Unit
+) : RecyclerView.Adapter<MusicAdapter.MusicViewHolder>() {
 
     class MusicViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val musicName: TextView = itemView.findViewById(android.R.id.text1)
@@ -30,17 +28,8 @@ class MusicAdapter(private val musicList: List<Music>) :
     override fun onBindViewHolder(holder: MusicViewHolder, position: Int) {
         val music = musicList[position]
         holder.musicName.text = music.name
-
         holder.itemView.setOnClickListener {
-            mediaPlayer?.release()
-            mediaPlayer = MediaPlayer()
-            try {
-                mediaPlayer?.setDataSource(music.path)
-                mediaPlayer?.prepare()
-                mediaPlayer?.start()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
+            onItemClick(music.path)
         }
     }
 }
