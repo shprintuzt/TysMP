@@ -2,6 +2,7 @@
     package="com.example.tysmp">
 
     <!-- 音楽ファイル読み取り権限 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
 
     <application
@@ -20,5 +21,9 @@
             </intent-filter>
         </activity>
 
+        <!-- 🔊 フォアグラウンドサービス -->
+        <service android:name=".MusicService" android:foregroundServiceType="mediaPlayback" />
+
     </application>
+
 </manifest>

@@ -1,8 +1,8 @@
 package com.example.tysmp
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
-import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
@@ -11,109 +11,59 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
 
     private val musicList = mutableListOf<Music>()
     private lateinit var adapter: MusicAdapter
-    private var mediaPlayer: MediaPlayer? = null
+    private var isRepeating = false
 
-    private lateinit var btnPause: Button
-    private lateinit var btnStop: Button
     private lateinit var btnRepeat: Button
-
-    private var isRepeating = false // 🔁 現在のリピート状態
+    private lateinit var btnStop: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        btnPause = findViewById(R.id.btnPause)
-        btnStop = findViewById(R.id.btnStop)
         btnRepeat = findViewById(R.id.btnRepeat)
+        btnStop = findViewById(R.id.btnStop)
 
         val recyclerView = findViewById<RecyclerView>(R.id.musicRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         adapter = MusicAdapter(musicList) { path ->
-            playMusic(path)
+            val intent = Intent(this, MusicService::class.java)
+            intent.action = "PLAY"
+            intent.putExtra("path", path)
+            intent.putExtra("repeat", isRepeating)
+            startService(intent)
         }
         recyclerView.adapter = adapter
 
-        checkPermissionsAndLoadMusic()
-
-        // 🎵 一時停止ボタン
-        btnPause.setOnClickListener {
-            mediaPlayer?.let {
-                if (it.isPlaying) {
-                    it.pause()
-                    btnPause.text = "▶ 再開"
-                } else {
-                    it.start()
-                    btnPause.text = "⏸ 一時停止"
-                }
-            }
-        }
-
-        // 🛑 停止ボタン
-        btnStop.setOnClickListener {
-            stopMusic()
-        }
-
-        // 🔁 リピートボタン
         btnRepeat.setOnClickListener {
             isRepeating = !isRepeating
-            mediaPlayer?.isLooping = isRepeating
             btnRepeat.text = if (isRepeating) "🔁 リピートON" else "🔁 リピートOFF"
         }
-    }
 
-    private fun playMusic(path: String) {
-        stopMusic() // 再生中ならリセット
-
-        mediaPlayer = MediaPlayer()
-        try {
-            mediaPlayer?.setDataSource(path)
-            mediaPlayer?.prepare()
-            mediaPlayer?.isLooping = isRepeating // 🔁 現在の設定を反映
-            mediaPlayer?.start()
-            btnPause.text = "⏸ 一時停止"
-        } catch (e: IOException) {
-            e.printStackTrace()
+        btnStop.setOnClickListener {
+            val intent = Intent(this, MusicService::class.java)
+            intent.action = "STOP"
+            startService(intent)
         }
-    }
 
-    private fun stopMusic() {
-        mediaPlayer?.let {
-            if (it.isPlaying || it.currentPosition > 0) {
-                it.stop()
-            }
-            it.release()
-        }
-        mediaPlayer = null
-        btnPause.text = "⏸ 一時停止"
+        checkPermissionsAndLoadMusic()
     }
 
     private fun checkPermissionsAndLoadMusic() {
-        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
             Manifest.permission.READ_MEDIA_AUDIO
-        } else {
+        else
             Manifest.permission.READ_EXTERNAL_STORAGE
-        }
 
-        if (ActivityCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, permission)
+            != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(permission), 100)
         } else {
-            loadMusic()
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 100 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             loadMusic()
         }
     }
@@ -142,10 +92,5 @@ class MainActivity : AppCompatActivity() {
         }
 
         adapter.notifyDataSetChanged()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        stopMusic()
     }
 }
