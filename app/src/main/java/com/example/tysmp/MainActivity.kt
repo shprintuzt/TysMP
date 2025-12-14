@@ -38,6 +38,8 @@ class MainActivity : AppCompatActivity() {
 
         adapter = MusicAdapter(musicList) { path ->
             playMusic(path)
+            // 🎨 RecyclerView に再生中を通知
+            adapter.setPlaying(path)
         }
         recyclerView.adapter = adapter
 
@@ -59,6 +61,7 @@ class MainActivity : AppCompatActivity() {
         // 🛑 停止ボタン
         btnStop.setOnClickListener {
             stopMusic()
+            adapter.setPlaying("")
         }
 
         // 🔁 リピートボタン

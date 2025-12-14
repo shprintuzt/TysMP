@@ -13,6 +13,8 @@ class MusicAdapter(
     private val onItemClick: (String) -> Unit
 ) : RecyclerView.Adapter<MusicAdapter.MusicViewHolder>() {
 
+    private var playingPath: String? = null
+
     class MusicViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val musicName: TextView = itemView.findViewById(android.R.id.text1)
     }
@@ -28,8 +30,31 @@ class MusicAdapter(
     override fun onBindViewHolder(holder: MusicViewHolder, position: Int) {
         val music = musicList[position]
         holder.musicName.text = music.name
+
+        // 🎨 再生中の曲だけ色を変える
+        if (music.path == playingPath) {
+            holder.itemView.setBackgroundColor(
+                holder.itemView.context.getColor(android.R.color.holo_blue_light)
+            )
+        } else {
+            holder.itemView.setBackgroundColor(
+                holder.itemView.context.getColor(android.R.color.transparent)
+            )
+        }
+
         holder.itemView.setOnClickListener {
             onItemClick(music.path)
         }
+    }
+
+    // 🔔 再生中の曲を更新
+    fun setPlaying(path: String) {
+        val oldIndex = musicList.indexOfFirst { it.path == playingPath }
+        val newIndex = musicList.indexOfFirst { it.path == path }
+
+        playingPath = path
+
+        if (oldIndex >= 0) notifyItemChanged(oldIndex)
+        if (newIndex >= 0) notifyItemChanged(newIndex)
     }
 }
