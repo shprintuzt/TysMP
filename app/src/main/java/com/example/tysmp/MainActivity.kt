@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Button
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -42,9 +43,8 @@ class MainActivity : AppCompatActivity() {
         adapter = MusicAdapter(musicList) { path ->
             if (!isPlaying) {
                 playMusic(path)
-                // 🎨 RecyclerView に再生中を通知
-                adapter.setPlaying(path)
-                isPlaying = true
+            } else {
+                showPlayNextConfirmDialog(path)
             }
         }
         recyclerView.adapter = adapter
@@ -68,7 +68,8 @@ class MainActivity : AppCompatActivity() {
         btnStop.setOnClickListener {
             if (!isPlaying) {
                 stopMusic()
-                adapter.setPlaying("")
+            } else {
+                showStopConfirmDialog()
             }
         }
 
@@ -88,13 +89,16 @@ class MainActivity : AppCompatActivity() {
             mediaPlayer?.setOnCompletionListener {
                 // 再生終了時の処理
                 Log.d("MediaPlayer", "再生が終了しました")
-                isPlaying = false;
+                isPlaying = false
             }
             mediaPlayer?.setDataSource(path)
             mediaPlayer?.prepare()
             mediaPlayer?.isLooping = isRepeating // 🔁 現在の設定を反映
             mediaPlayer?.start()
             btnPause.text = "⏸ 一時停止"
+            isPlaying = true
+            // 🎨 RecyclerView に再生中を通知
+            adapter.setPlaying(path)
         } catch (e: IOException) {
             e.printStackTrace()
         }
@@ -108,7 +112,9 @@ class MainActivity : AppCompatActivity() {
             it.release()
         }
         mediaPlayer = null
+        adapter.setPlaying("")
         btnPause.text = "⏸ 一時停止"
+        isPlaying = false
     }
 
     private fun checkPermissionsAndLoadMusic() {
@@ -158,6 +164,36 @@ class MainActivity : AppCompatActivity() {
         }
 
         adapter.notifyDataSetChanged()
+    }
+
+    private fun showStopConfirmDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("再生中の音楽を停止します")
+            .setMessage("現在の再生中の音楽を停止しますか？")
+            .setPositiveButton("はい") { _, _ ->
+                stopMusic()
+            }
+            .setNegativeButton("キャンセル", null)
+            .show()
+    }
+
+    private fun showPlayNextConfirmDialog(path: String) {
+        AlertDialog.Builder(this)
+            .setTitle("再生中の音楽があります")
+            .setMessage("現在の再生を停止して、別の曲を再生しますか？")
+            .setPositiveButton("はい") { _, _ ->
+                stopCurrentAndPlayNext(path)
+            }
+            .setNegativeButton("キャンセル", null)
+            .show()
+    }
+
+    private fun stopCurrentAndPlayNext(path: String) {
+        // ⏹ 現在の再生を停止
+        stopMusic()
+
+        // ▶ 次の曲を再生
+        playMusic(path)
     }
 
     override fun onDestroy() {
