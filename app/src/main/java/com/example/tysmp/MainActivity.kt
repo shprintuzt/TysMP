@@ -6,6 +6,7 @@ import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -23,6 +24,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnStop: Button
     private lateinit var btnRepeat: Button
 
+    private var isPlaying = false
+
     private var isRepeating = false // 🔁 現在のリピート状態
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,9 +40,12 @@ class MainActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         adapter = MusicAdapter(musicList) { path ->
-            playMusic(path)
-            // 🎨 RecyclerView に再生中を通知
-            adapter.setPlaying(path)
+            if (!isPlaying) {
+                playMusic(path)
+                // 🎨 RecyclerView に再生中を通知
+                adapter.setPlaying(path)
+                isPlaying = true
+            }
         }
         recyclerView.adapter = adapter
 
@@ -60,8 +66,10 @@ class MainActivity : AppCompatActivity() {
 
         // 🛑 停止ボタン
         btnStop.setOnClickListener {
-            stopMusic()
-            adapter.setPlaying("")
+            if (!isPlaying) {
+                stopMusic()
+                adapter.setPlaying("")
+            }
         }
 
         // 🔁 リピートボタン
@@ -77,6 +85,11 @@ class MainActivity : AppCompatActivity() {
 
         mediaPlayer = MediaPlayer()
         try {
+            mediaPlayer?.setOnCompletionListener {
+                // 再生終了時の処理
+                Log.d("MediaPlayer", "再生が終了しました")
+                isPlaying = false;
+            }
             mediaPlayer?.setDataSource(path)
             mediaPlayer?.prepare()
             mediaPlayer?.isLooping = isRepeating // 🔁 現在の設定を反映
