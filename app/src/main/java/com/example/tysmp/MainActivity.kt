@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.widget.Button
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -21,6 +22,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnRepeat: Button
     private lateinit var btnStop: Button
 
+    private val requestNotificationPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) {
+                // 許可された
+            } else {
+                // 拒否された
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -32,6 +42,11 @@ class MainActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         adapter = MusicAdapter(musicList) { path ->
+            // 呼び出し
+            if (Build.VERSION.SDK_INT >= 33) {
+                requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+
             val intent = Intent(this, MusicService::class.java)
             intent.action = "PLAY"
             intent.putExtra("path", path)
