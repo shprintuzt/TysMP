@@ -158,6 +158,8 @@ class MainActivity : AppCompatActivity() {
         cursor?.use {
             while (it.moveToNext()) {
                 val name = it.getString(it.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME))
+                    .removeSuffix(".mp3")
+                    .replace("_", " ")
                 val path = it.getString(it.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))
                 musicList.add(Music(name, path))
             }
