@@ -90,6 +90,7 @@ class MainActivity : AppCompatActivity() {
                 // 再生終了時の処理
                 Log.d("MediaPlayer", "再生が終了しました")
                 isPlaying = false
+                adapter.setPlaying("")
             }
             mediaPlayer?.setDataSource(path)
             mediaPlayer?.prepare()
