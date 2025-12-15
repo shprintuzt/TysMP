@@ -171,23 +171,36 @@ class MainActivity : AppCompatActivity() {
 
     private fun showStopConfirmDialog() {
         AlertDialog.Builder(this)
-            .setTitle("再生中の音楽を停止します")
-            .setMessage("現在の再生中の音楽を停止しますか？")
+            .setTitle("うた を とめますか？")
+            .setMessage("うた を とめたい ひと は はい をおしてね♪")
             .setPositiveButton("はい") { _, _ ->
                 stopMusic()
             }
-            .setNegativeButton("キャンセル", null)
+            .setNegativeButton("いいえ", null)
             .show()
     }
 
     private fun showPlayNextConfirmDialog(path: String) {
+        val value = (0..1).random()
+        val value2 = (0..1).random()
+        val answer = if (value == 1) "はい" else "うん"
+        val anotherText = if (value == 0) "はい" else "うん"
+        val answerPosition = if (value2 == 1) "right" else "left"
+        val rightText = if (answerPosition == "right") answer else anotherText
+        val leftText = if (answerPosition == "left") answer else anotherText
         AlertDialog.Builder(this)
-            .setTitle("再生中の音楽があります")
-            .setMessage("現在の再生を停止して、別の曲を再生しますか？")
-            .setPositiveButton("はい") { _, _ ->
-                stopCurrentAndPlayNext(path)
+            .setTitle("つぎ の うた を ながしますか？")
+            .setMessage("つぎ の うた を ながしたい ひと は $answer をおしてね♪")
+            .setPositiveButton(rightText) { _, _ ->
+                if (answerPosition == "right") {
+                    stopCurrentAndPlayNext(path)
+                }
             }
-            .setNegativeButton("キャンセル", null)
+            .setNegativeButton(leftText) { _, _ ->
+                if (answerPosition == "left") {
+                    stopCurrentAndPlayNext(path)
+                }
+            }
             .show()
     }
 
