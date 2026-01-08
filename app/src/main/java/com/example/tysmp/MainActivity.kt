@@ -1,6 +1,7 @@
 package com.example.tysmp
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.os.Build
@@ -53,15 +54,15 @@ class MainActivity : AppCompatActivity() {
 
         // 🎵 一時停止ボタン
         btnPause.setOnClickListener {
-            mediaPlayer?.let {
-                if (it.isPlaying) {
-                    it.pause()
-                    btnPause.text = "▶ 再開"
-                } else {
-                    it.start()
-                    btnPause.text = "⏸ 一時停止"
-                }
-            }
+//            mediaPlayer?.let {
+//                if (it.isPlaying) {
+//                    it.pause()
+//                    btnPause.text = "▶ 再開"
+//                } else {
+//                    it.start()
+//                    btnPause.text = "⏸ 一時停止"
+//                }
+//            }
         }
 
         // 🛑 停止ボタン
@@ -82,40 +83,49 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun playMusic(path: String) {
-        stopMusic() // 再生中ならリセット
+        val intent = Intent(this, MusicService::class.java)
+        intent.action = "PLAY"
+        intent.putExtra("path", path)
+        startService(intent)
 
-        mediaPlayer = MediaPlayer()
-        try {
-            mediaPlayer?.setOnCompletionListener {
-                // 再生終了時の処理
-                Log.d("MediaPlayer", "再生が終了しました")
-                isPlaying = false
-                adapter.setPlaying("")
-            }
-            mediaPlayer?.setDataSource(path)
-            mediaPlayer?.prepare()
-            mediaPlayer?.isLooping = isRepeating // 🔁 現在の設定を反映
-            mediaPlayer?.start()
-            btnPause.text = "⏸ 一時停止"
-            isPlaying = true
-            // 🎨 RecyclerView に再生中を通知
-            adapter.setPlaying(path)
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
+//        stopMusic() // 再生中ならリセット
+//
+//        mediaPlayer = MediaPlayer()
+//        try {
+//            mediaPlayer?.setOnCompletionListener {
+//                // 再生終了時の処理
+//                Log.d("MediaPlayer", "再生が終了しました")
+//                isPlaying = false
+//                adapter.setPlaying("")
+//            }
+//            mediaPlayer?.setDataSource(path)
+//            mediaPlayer?.prepare()
+//            mediaPlayer?.isLooping = isRepeating // 🔁 現在の設定を反映
+//            mediaPlayer?.start()
+//            btnPause.text = "⏸ 一時停止"
+//            isPlaying = true
+//            // 🎨 RecyclerView に再生中を通知
+//            adapter.setPlaying(path)
+//        } catch (e: IOException) {
+//            e.printStackTrace()
+//        }
     }
 
     private fun stopMusic() {
-        mediaPlayer?.let {
-            if (it.isPlaying || it.currentPosition > 0) {
-                it.stop()
-            }
-            it.release()
-        }
-        mediaPlayer = null
-        adapter.setPlaying("")
-        btnPause.text = "⏸ 一時停止"
-        isPlaying = false
+        val intent = Intent(this, MusicService::class.java)
+        intent.action = "STOP"
+        startService(intent)
+
+//        mediaPlayer?.let {
+//            if (it.isPlaying || it.currentPosition > 0) {
+//                it.stop()
+//            }
+//            it.release()
+//        }
+//        mediaPlayer = null
+//        adapter.setPlaying("")
+//        btnPause.text = "⏸ 一時停止"
+//        isPlaying = false
     }
 
     private fun checkPermissionsAndLoadMusic() {
