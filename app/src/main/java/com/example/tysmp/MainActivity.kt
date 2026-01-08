@@ -9,9 +9,12 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Button
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import java.io.IOException
@@ -51,6 +54,18 @@ class MainActivity : AppCompatActivity() {
         recyclerView.adapter = adapter
 
         checkPermissionsAndLoadMusic()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                notificationPermissionLauncher.launch(
+                    Manifest.permission.POST_NOTIFICATIONS
+                )
+            }
+        }
 
         // 🎵 一時停止ボタン
         btnPause.setOnClickListener {
@@ -150,6 +165,19 @@ class MainActivity : AppCompatActivity() {
             loadMusic()
         }
     }
+
+    private val notificationPermissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { granted ->
+            if (!granted) {
+                Toast.makeText(
+                    this,
+                    "通知を許可しないとバックグラウンド再生できません",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
 
     private fun loadMusic() {
         val projection = arrayOf(
