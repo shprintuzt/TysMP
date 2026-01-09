@@ -69,15 +69,7 @@ class MainActivity : AppCompatActivity() {
 
         // 🎵 一時停止ボタン
         btnPause.setOnClickListener {
-//            mediaPlayer?.let {
-//                if (it.isPlaying) {
-//                    it.pause()
-//                    btnPause.text = "▶ 再開"
-//                } else {
-//                    it.start()
-//                    btnPause.text = "⏸ 一時停止"
-//                }
-//            }
+            pauseMusic()
         }
 
         // 🛑 停止ボタン
@@ -141,6 +133,12 @@ class MainActivity : AppCompatActivity() {
 //        adapter.setPlaying("")
 //        btnPause.text = "⏸ 一時停止"
 //        isPlaying = false
+    }
+
+    private fun pauseMusic() {
+        val intent = Intent(this, MusicService::class.java)
+        intent.action = MusicService.ACTION_PAUSE
+        startService(intent)
     }
 
     private fun checkPermissionsAndLoadMusic() {

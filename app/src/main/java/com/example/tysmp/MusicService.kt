@@ -14,6 +14,13 @@ import java.io.IOException
 
 class MusicService : Service() {
 
+    companion object {
+        const val ACTION_PLAY = "PLAY"
+        const val ACTION_PAUSE = "PAUSE"
+        const val ACTION_STOP = "STOP"
+        const val ACTION_REPEAT = "REPEAT"
+    }
+
     private var mediaPlayer: MediaPlayer? = null
     private var isPlaying = false
     private var isRepeating = false // 🔁 現在のリピート状態
@@ -26,12 +33,16 @@ class MusicService : Service() {
         val action = intent?.action
 
         when (action) {
-            "PLAY" -> {
+            ACTION_PLAY -> {
                 val path: String? = intent.getStringExtra("path")
-                val repeat = intent.getBooleanExtra("repeat", false)
                 startMusic(path)
             }
-            "STOP" -> stopMusic()
+            ACTION_STOP -> stopMusic()
+            ACTION_PAUSE -> pauseMusic()
+            ACTION_REPEAT -> {
+                val repeat = intent.getBooleanExtra("repeat", false)
+                mediaPlayer?.isLooping = repeat
+            }
         }
 
         return START_STICKY
@@ -51,7 +62,6 @@ class MusicService : Service() {
             }
             mediaPlayer?.setDataSource(path)
             mediaPlayer?.prepare()
-            mediaPlayer?.isLooping = isRepeating // 🔁 現在の設定を反映
             mediaPlayer?.start()
             isPlaying = true
         } catch (e: IOException) {
@@ -72,6 +82,16 @@ class MusicService : Service() {
         mediaPlayer = null
         stopForeground(STOP_FOREGROUND_REMOVE)
         isPlaying = false
+    }
+
+    private fun pauseMusic() {
+        mediaPlayer?.let {
+            if (it.isPlaying) {
+                it.pause()
+            } else {
+                it.start()
+            }
+        }
     }
 
     private fun createNotification(): Notification {
