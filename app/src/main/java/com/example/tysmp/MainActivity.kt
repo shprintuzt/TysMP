@@ -7,7 +7,6 @@ import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -17,7 +16,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
 
@@ -83,9 +81,10 @@ class MainActivity : AppCompatActivity() {
 
         // 🔁 リピートボタン
         btnRepeat.setOnClickListener {
-            isRepeating = !isRepeating
-            mediaPlayer?.isLooping = isRepeating
-            btnRepeat.text = if (isRepeating) "🔁 リピートON" else "🔁 リピートOFF"
+            val intent = Intent(this, MusicService::class.java)
+            intent.action = MusicService.ACTION_REPEAT
+            intent.putExtra("repeat", true)
+            startService(intent)
         }
     }
 
@@ -94,45 +93,12 @@ class MainActivity : AppCompatActivity() {
         intent.action = "PLAY"
         intent.putExtra("path", path)
         startService(intent)
-
-//        stopMusic() // 再生中ならリセット
-//
-//        mediaPlayer = MediaPlayer()
-//        try {
-//            mediaPlayer?.setOnCompletionListener {
-//                // 再生終了時の処理
-//                Log.d("MediaPlayer", "再生が終了しました")
-//                isPlaying = false
-//                adapter.setPlaying("")
-//            }
-//            mediaPlayer?.setDataSource(path)
-//            mediaPlayer?.prepare()
-//            mediaPlayer?.isLooping = isRepeating // 🔁 現在の設定を反映
-//            mediaPlayer?.start()
-//            btnPause.text = "⏸ 一時停止"
-//            isPlaying = true
-//            // 🎨 RecyclerView に再生中を通知
-//            adapter.setPlaying(path)
-//        } catch (e: IOException) {
-//            e.printStackTrace()
-//        }
     }
 
     private fun stopMusic() {
         val intent = Intent(this, MusicService::class.java)
         intent.action = "STOP"
         startService(intent)
-
-//        mediaPlayer?.let {
-//            if (it.isPlaying || it.currentPosition > 0) {
-//                it.stop()
-//            }
-//            it.release()
-//        }
-//        mediaPlayer = null
-//        adapter.setPlaying("")
-//        btnPause.text = "⏸ 一時停止"
-//        isPlaying = false
     }
 
     private fun pauseMusic() {
