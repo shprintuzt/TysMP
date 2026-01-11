@@ -58,6 +58,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    //region Lifecycle
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -108,13 +109,32 @@ class MainActivity : AppCompatActivity() {
 
         // 🔁 リピートボタン
         btnRepeat.setOnClickListener {
-            val intent = Intent(this, MusicService::class.java)
-            intent.action = MusicService.ACTION_REPEAT
-            intent.putExtra("repeat", true)
-            startService(intent)
+            setRepeat()
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    override fun onStart() {
+        super.onStart()
+        registerReceiver(
+            stateReceiver,
+            IntentFilter(MusicConstants.ACTION_STATE_CHANGED),
+            RECEIVER_NOT_EXPORTED
+        )
+    }
+    override fun onStop() {
+        super.onStop()
+        unregisterReceiver(stateReceiver)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopMusic()
+    }
+
+    //endregion
+
+    //region Send Intent
     private fun playMusic(path: String) {
         val intent = Intent(this, MusicService::class.java)
         intent.action = "PLAY"
@@ -134,6 +154,15 @@ class MainActivity : AppCompatActivity() {
         startService(intent)
     }
 
+    private fun setRepeat() {
+        val intent = Intent(this, MusicService::class.java)
+        intent.action = MusicService.ACTION_REPEAT
+        intent.putExtra("repeat", true)
+        startService(intent)
+    }
+    //endregion
+
+    //region Permission
     private fun checkPermissionsAndLoadMusic() {
         val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             Manifest.permission.READ_MEDIA_AUDIO
@@ -169,6 +198,7 @@ class MainActivity : AppCompatActivity() {
                 ).show()
             }
         }
+    //endregion
 
     private fun loadMusic() {
         val projection = arrayOf(
@@ -198,40 +228,43 @@ class MainActivity : AppCompatActivity() {
         adapter.notifyDataSetChanged()
     }
 
+    //region Dialog
     private fun showStopConfirmDialog() {
+        val (title, question, choiceA, choiceB, correctAnswer) = Quiz.createStopPlayingQuiz()
         AlertDialog.Builder(this)
-            .setTitle("うた を とめますか？")
-            .setMessage("うた を とめたい ひと は はい をおしてね♪")
-            .setPositiveButton("はい") { _, _ ->
-                stopMusic()
+            .setTitle(title)
+            .setMessage(question)
+            .setPositiveButton(choiceA) { _, _ ->
+                if (correctAnswer == Answer.A) {
+                    stopMusic()
+                }
             }
-            .setNegativeButton("いいえ", null)
+            .setNegativeButton(choiceB) { _, _ ->
+                if (correctAnswer == Answer.B) {
+                    stopMusic()
+                }
+            }
             .show()
     }
 
     private fun showPlayNextConfirmDialog(path: String) {
-        val value = (0..1).random()
-        val value2 = (0..1).random()
-        val answer = if (value == 1) "はい" else "うん"
-        val anotherText = if (value == 0) "はい" else "うん"
-        val answerPosition = if (value2 == 1) "right" else "left"
-        val rightText = if (answerPosition == "right") answer else anotherText
-        val leftText = if (answerPosition == "left") answer else anotherText
+        val (title, question, choiceA, choiceB, correctAnswer) = Quiz.createPlayNextQuiz()
         AlertDialog.Builder(this)
-            .setTitle("つぎ の うた を ながしますか？")
-            .setMessage("つぎ の うた を ながしたい ひと は $answer をおしてね♪")
-            .setPositiveButton(rightText) { _, _ ->
-                if (answerPosition == "right") {
+            .setTitle(title)
+            .setMessage(question)
+            .setPositiveButton(choiceA) { _, _ ->
+                if (correctAnswer == Answer.A) {
                     stopCurrentAndPlayNext(path)
                 }
             }
-            .setNegativeButton(leftText) { _, _ ->
-                if (answerPosition == "left") {
+            .setNegativeButton(choiceB) { _, _ ->
+                if (correctAnswer == Answer.B) {
                     stopCurrentAndPlayNext(path)
                 }
             }
             .show()
     }
+    //endregion
 
     private fun stopCurrentAndPlayNext(path: String) {
         // ⏹ 現在の再生を停止
@@ -239,24 +272,5 @@ class MainActivity : AppCompatActivity() {
 
         // ▶ 次の曲を再生
         playMusic(path)
-    }
-
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    override fun onStart() {
-        super.onStart()
-        registerReceiver(
-            stateReceiver,
-            IntentFilter(MusicConstants.ACTION_STATE_CHANGED),
-            RECEIVER_NOT_EXPORTED
-        )
-    }
-    override fun onStop() {
-        super.onStop()
-        unregisterReceiver(stateReceiver)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        stopMusic()
     }
 }
