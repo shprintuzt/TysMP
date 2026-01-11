@@ -70,6 +70,8 @@ class MusicService : Service() {
 
         // 🔔 これが「バックグラウンドで生き続ける」条件
         startForeground(1, createNotification())
+
+        sendState(true, path)
     }
 
     private fun stopMusic() {
@@ -80,8 +82,10 @@ class MusicService : Service() {
             it.release()
         }
         mediaPlayer = null
-        stopForeground(STOP_FOREGROUND_REMOVE)
         isPlaying = false
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
+        sendState(false, null)
     }
 
     private fun pauseMusic() {
@@ -92,6 +96,15 @@ class MusicService : Service() {
                 it.start()
             }
         }
+    }
+
+    private fun sendState(isPlaying: Boolean, path: String?) {
+        Log.d("MusicService", "sendState")
+        val intent = Intent(MusicConstants.ACTION_STATE_CHANGED)
+        intent.setPackage(packageName) // ★超重要
+        intent.putExtra(MusicConstants.EXTRA_IS_PLAYING, isPlaying)
+        intent.putExtra(MusicConstants.EXTRA_PATH, path)
+        sendBroadcast(intent)
     }
 
     private fun createNotification(): Notification {

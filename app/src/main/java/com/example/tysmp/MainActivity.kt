@@ -1,7 +1,10 @@
 package com.example.tysmp
 
 import android.Manifest
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.os.Build
@@ -10,6 +13,7 @@ import android.provider.MediaStore
 import android.widget.Button
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -30,6 +34,29 @@ class MainActivity : AppCompatActivity() {
     private var isPlaying = false
 
     private var isRepeating = false // 🔁 現在のリピート状態
+
+    private val stateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action != MusicConstants.ACTION_STATE_CHANGED) return
+
+            isPlaying = intent.getBooleanExtra(
+                MusicConstants.EXTRA_IS_PLAYING, false
+            )
+            val path = intent.getStringExtra(MusicConstants.EXTRA_PATH)
+
+            // 🔘 停止ボタン
+            btnStop.isEnabled = isPlaying
+            btnStop.alpha = if (isPlaying) 1.0f else 0.5f
+
+            // 🎨 RecyclerView の再生中表示
+            path?.let {
+                adapter.setPlaying(it)
+            }
+            if (!isPlaying) {
+                adapter.setPlaying("") // 全解除
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -212,6 +239,20 @@ class MainActivity : AppCompatActivity() {
 
         // ▶ 次の曲を再生
         playMusic(path)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    override fun onStart() {
+        super.onStart()
+        registerReceiver(
+            stateReceiver,
+            IntentFilter(MusicConstants.ACTION_STATE_CHANGED),
+            RECEIVER_NOT_EXPORTED
+        )
+    }
+    override fun onStop() {
+        super.onStop()
+        unregisterReceiver(stateReceiver)
     }
 
     override fun onDestroy() {
