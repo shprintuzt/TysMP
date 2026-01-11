@@ -79,8 +79,10 @@ class MainActivity : AppCompatActivity() {
         }
         recyclerView.adapter = adapter
 
+        // Local media storage permission
         checkPermissionsAndLoadMusic()
 
+        // Notification permission
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
                     this,
@@ -93,21 +95,16 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // 🎵 一時停止ボタン
         btnPause.setOnClickListener {
             pauseMusic()
         }
 
-        // 🛑 停止ボタン
         btnStop.setOnClickListener {
-            if (!isPlaying) {
-                stopMusic()
-            } else {
+            if (isPlaying) {
                 showStopConfirmDialog()
             }
         }
 
-        // 🔁 リピートボタン
         btnRepeat.setOnClickListener {
             setRepeat()
         }
