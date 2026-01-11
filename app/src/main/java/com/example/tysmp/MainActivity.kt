@@ -198,7 +198,6 @@ class MainActivity : AppCompatActivity() {
                 ).show()
             }
         }
-    //endregion
 
     private fun loadMusic() {
         val projection = arrayOf(
@@ -227,6 +226,7 @@ class MainActivity : AppCompatActivity() {
 
         adapter.notifyDataSetChanged()
     }
+    //endregion
 
     //region Dialog
     private fun showStopConfirmDialog() {
@@ -264,7 +264,6 @@ class MainActivity : AppCompatActivity() {
             }
             .show()
     }
-    //endregion
 
     private fun stopCurrentAndPlayNext(path: String) {
         // ⏹ 現在の再生を停止
@@ -273,4 +272,5 @@ class MainActivity : AppCompatActivity() {
         // ▶ 次の曲を再生
         playMusic(path)
     }
+    //endregion
 }
