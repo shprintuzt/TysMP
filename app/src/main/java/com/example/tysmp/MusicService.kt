@@ -58,7 +58,8 @@ class MusicService : Service() {
             mediaPlayer?.setOnCompletionListener {
                 // 再生終了時の処理
                 Log.d("MediaPlayer", "再生が終了しました")
-                isPlaying = true
+                isPlaying = false
+                sendState(false, path)
             }
             mediaPlayer?.setDataSource(path)
             mediaPlayer?.prepare()
