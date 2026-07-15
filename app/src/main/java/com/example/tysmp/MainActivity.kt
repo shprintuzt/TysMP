@@ -1,8 +1,11 @@
 package com.example.tysmp
 
 import android.Manifest
+import android.content.ContentUris
 import android.content.pm.PackageManager
+import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
@@ -100,6 +103,13 @@ class MainActivity : AppCompatActivity() {
             isPlaying = true
             // 🎨 RecyclerView に再生中を通知
             adapter.setPlaying(path)
+
+//            val mmr = MediaMetadataRetriever()
+//            mmr.setDataSource(this, path)
+//            val genre = mmr.extractMetadata(
+//                MediaMetadataRetriever.METADATA_KEY_GENRE
+//            )
+//            Log.d(genre.ToString())
         } catch (e: IOException) {
             e.printStackTrace()
         }
@@ -155,6 +165,7 @@ class MainActivity : AppCompatActivity() {
             null,
             MediaStore.Audio.Media.DATE_ADDED + " DESC"
         )
+        val idColumn = cursor?.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
 
         cursor?.use {
             while (it.moveToNext()) {
@@ -163,6 +174,18 @@ class MainActivity : AppCompatActivity() {
                     .replace("_", " ")
                 val path = it.getString(it.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))
                 musicList.add(Music(name, path))
+
+                val id = cursor.getLong(idColumn ?: 0)
+                val contentUri = ContentUris.withAppendedId(
+                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    id)
+
+                val mmr = MediaMetadataRetriever()
+                mmr.setDataSource(this, contentUri)
+                val genre = mmr.extractMetadata(
+                    MediaMetadataRetriever.METADATA_KEY_GENRE
+                )
+                Log.d(this.toString(), genre ?: "")
             }
         }
 
